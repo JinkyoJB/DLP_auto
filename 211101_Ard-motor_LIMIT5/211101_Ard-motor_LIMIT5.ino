@@ -1,5 +1,6 @@
 //제어용 아두이노 포트번호는 16 
 //21.11.02 모터 드라이버 교체--> 이전버전 코드와 모터 방향 반대
+//21.11.17 레진 모터 추가
 #define Blade_DIR 53
 #define Blade_STEP 51
 #define Blade1_ms1 49
@@ -24,13 +25,24 @@
 #define sensor 32 //0812업글
 
 #define resin_SIG 2
+#define Rsensor 3 
+#define resin_e 4 //enable
+#define resin_ms1 5
+#define resin_ms2 6
+#define resin_SP 7
+#define resin_STEP 8
+#define resin_DIR 9
+
+
 
 void setup()
 {
+  pinMode(resin_e, OUTPUT);
   pinMode(Blade_e, OUTPUT);
   pinMode(zaxis_e, OUTPUT);
   digitalWrite(Blade_e,LOW);
   digitalWrite(zaxis_e,LOW);
+  digitalWrite(resin_e,LOW);
   pinMode(Blade_DIR, OUTPUT);
   pinMode(Blade_STEP, OUTPUT);
   pinMode(Blade1_SP, OUTPUT);
@@ -40,6 +52,12 @@ void setup()
   pinMode(Blade2_ms2, OUTPUT);
   pinMode(Blade2_ms1, OUTPUT);
  
+  pinMode(resin_DIR, OUTPUT);
+  pinMode(resin_STEP,OUTPUT);
+  pinMode(resin_SP, OUTPUT);
+  pinMode(resin_ms2, OUTPUT);
+  pinMode(resin_ms1, OUTPUT);
+
   pinMode(zaxis_DIR, OUTPUT);
   pinMode(zaxis_STEP,OUTPUT);
   pinMode(zaxis1_SP, OUTPUT);
@@ -52,6 +70,7 @@ void setup()
   
   pinMode(button, INPUT_PULLUP);
   pinMode(sensor, INPUT_PULLUP);
+  pinMode(Rsensor, INPUT_PULLUP);
  
  Serial.begin(9600);
 }
@@ -94,6 +113,14 @@ void loop()
    {
       resinshot();
    }
+      if((value1 == 0) & (value2 == 0) & (value3 == 3)) 
+    {
+      Rhoming();
+    }
+      if((value1 == 4) & (value2 == 4) & (value3 == 4)) 
+    {
+      resinMS();
+    }
 
  ///원하는 스텝만큼 모터이동하는 함수들
     if(value1 == 7) //7은 blade함수
@@ -106,9 +133,15 @@ void loop()
       Serial.print(" zaxis:"); Serial.print(value3); Serial.print("step");
       zaxis(value2, value3); 
     }
+       if(value1 == 9) //9은 resin함수 
+    {
+      Serial.print(" resin:"); Serial.print(value3); Serial.print("step");
+      resin(value2, value3); 
+    }
   }
 }
- 
+
+//blade 모터이동 2400step--6mm   1step당 0.0025mm
 void blade(int direct, int step) // direct는 방향: 1은 앞으로, 0은 뒤로, step은 모터 step수,
 {
     digitalWrite(Blade1_SP,LOW);
@@ -144,7 +177,7 @@ void blade(int direct, int step) // direct는 방향: 1은 앞으로, 0은 뒤�
     Serial.println("*");
   }
 }
- 
+//Z모터이동 3200step--4mm   1step당 0.00125mm
 void zaxis(int direct, int step) // direct는 방향: 1은 앞으로, 0은 뒤로, step은 모터 step수,
 {
     digitalWrite(zaxis1_SP,LOW);
@@ -230,7 +263,7 @@ void bgoing()
     digitalWrite(Blade_STEP,LOW);
     delayMicroseconds(500);
   }
-  for(int i = 0; i < 2800; i++)
+  for(int i = 0; i < 7600; i++)
   {
     digitalWrite(Blade_STEP,HIGH);
     delayMicroseconds(500);
@@ -284,7 +317,7 @@ void zgoing()
  
   digitalWrite(zaxis_DIR, LOW);
    
-  for(int i = 0; i < 22050; i++)   //23000
+  for(int i = 0; i < 22850; i++)   //23000
   {
     digitalWrite(zaxis_STEP,HIGH);
     delayMicroseconds(700);
@@ -301,4 +334,103 @@ void resinshot()
     delay(1000);
     pinMode(resin_SIG, OUTPUT);
     Serial.println("*");
+}
+
+
+void resinMS()
+{
+  Serial.println(" resin moving and shot");
+  digitalWrite(resin_SP,LOW);
+  digitalWrite(resin_ms2,LOW);
+  digitalWrite(resin_ms1,LOW);
+    
+  digitalWrite(resin_DIR,HIGH);  //오른쪽이 원위치! 15센치(30000step) 왼쪽으로 가서 시료뿌릴 위치로 이동
+  for(int i = 0; i < 30000; i++)
+  {
+    digitalWrite(resin_STEP,HIGH);
+    delayMicroseconds(200);
+    digitalWrite(resin_STEP,LOW);
+    delayMicroseconds(200);
+  }
+  delay(1000);  //1초 딜레이
+  digitalWrite(resin_SIG, HIGH); //시료주사시작
+  digitalWrite(resin_DIR, LOW);  //시료 뿌리면서 우측으로 10CM(20000STEP)이동
+  for(int i = 0; i < 20000; i++)
+  {
+    digitalWrite(resin_STEP,HIGH);
+    delayMicroseconds(200);
+    digitalWrite(resin_STEP,LOW);
+    delayMicroseconds(200);
+  }
+  digitalWrite(resin_SIG, LOW); //시료주사끝
+  for(int i = 0; i < 10000; i++)  //끝으로 1CM 10000STEP더이동
+  {
+    digitalWrite(resin_STEP,HIGH);
+    delayMicroseconds(200);
+    digitalWrite(resin_STEP,LOW);
+    delayMicroseconds(200);
+  }
+  Serial.println("*");
+}
+
+///resin모터 이동 resin 800setp-->4mm  1step당 0.005mm
+void resin(int direct, int step) // direct는 방향: 1은 앞으로, 0은 뒤로, step은 모터 step수
+{
+    digitalWrite(resin_SP,LOW);
+    digitalWrite(resin_ms2,LOW);
+    digitalWrite(resin_ms1,LOW);
+  if(direct == 1)
+  {
+    Serial.println(" right");
+    digitalWrite(resin_DIR,LOW);
+    for(int i = 0; i < step; i++)
+      {
+        digitalWrite(resin_STEP,HIGH);
+        delayMicroseconds(200);
+        digitalWrite(resin_STEP,LOW);
+        delayMicroseconds(200);
+      }
+    Serial.println("*");
+  }
+  if(direct == 0)
+  {
+    Serial.println(" left");
+    digitalWrite(resin_DIR,HIGH);
+    for(int i = 0; i < step; i++)
+      {
+        digitalWrite(resin_STEP,HIGH);
+        delayMicroseconds(200);
+        digitalWrite(resin_STEP,LOW);
+        delayMicroseconds(200);
+      }
+    Serial.println("*");
+  }
+}
+
+///Resin motor가리미트센서에 닿도록 아래로 이동하는 함수
+void Rhoming()
+{
+  Serial.println(" homing-resin");
+  digitalWrite(resin_SP,LOW);
+  digitalWrite(resin_ms2,LOW);
+  digitalWrite(resin_ms1,LOW);
+ 
+  digitalWrite(resin_DIR, LOW);
+  
+  for(int i = 0; i < 9999999; i++ ) 
+  {
+    if( digitalRead(Rsensor) == LOW ) 
+    {
+      Serial.println(" resin sensor touched");
+      break;
+    } 
+    else 
+    {
+      digitalWrite(resin_STEP,HIGH);
+      delayMicroseconds(700);
+      digitalWrite(resin_STEP,LOW);
+      delayMicroseconds(700);
+    }
+  }
+  Serial.println("*");
 }
