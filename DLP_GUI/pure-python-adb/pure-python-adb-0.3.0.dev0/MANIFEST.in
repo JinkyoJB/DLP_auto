@@ -1,0 +1,3 @@
+recursive-exclude test *
+include README.rst
+include HISTORY.rst
