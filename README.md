@@ -7,6 +7,7 @@
 
 
 https://user-images.githubusercontent.com/85150616/190361339-f62668f7-aa68-4073-84bd-3492f415d7a6.mp4
+
 [제작된 3D프린터로 세라믹이 출력되는 모습]
 
 ## 1. Hardware
