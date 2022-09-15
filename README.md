@@ -4,7 +4,9 @@
 
 해당 내용은 서울과학기술대학교 특수정밀가공 및 생산연구실에서 진행하는 ‘ 세라믹 및 금속 재료의 3D 형상출력을 목적으로 제작된 광경화 타입 3D프린터 제작 및 딥러닝 기술을 기반으로 한 전공정 자동화 ’의 전반적인 기술 및 코드 내용입니다. 
 
-(https://s3-us-west-2.amazonaws.com/secure.notion-static.com/4e434c74-1afa-43e7-aae1-376536a14b04/printer-timelapse.mp4)
+
+
+https://user-images.githubusercontent.com/85150616/190361339-f62668f7-aa68-4073-84bd-3492f415d7a6.mp4
 [제작된 3D프린터로 세라믹이 출력되는 모습]
 
 ## 1. Hardware
